@@ -101,7 +101,11 @@ bool audioEngineInit()
 
     SDL_AudioSpec desiredSpec;
     desiredSpec.freq = 22050;
-    desiredSpec.format = AUDIO_S16;
+#ifdef __MORPHOS__
+    desiredSpec.format = AUDIO_S16SYS;
+#else
+	desiredSpec.format = AUDIO_S16;
+#endif
     desiredSpec.channels = 2;
     desiredSpec.samples = 1024;
     desiredSpec.callback = audioEngineMixin;

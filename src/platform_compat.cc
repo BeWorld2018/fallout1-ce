@@ -283,6 +283,13 @@ void compat_windows_path_to_native(char* path)
         }
         pch++;
     }
+#ifdef __MORPHOS__
+	if (path[0] =='/') {
+		// remove first character "/" FIX MORPHOS
+		memmove(path, path +1, strlen(path));		
+	}
+#endif
+	
 #endif
 }
 

@@ -683,7 +683,13 @@ static int _ioReset(void* handle)
     if (mve == NULL) {
         return 0;
     }
-
+#if __BIG_ENDIAN__
+    mve->field_14 = SDL_SwapLE16(mve->field_14);
+    mve->field_16 = SDL_SwapLE16(mve->field_16);
+    mve->field_18 = SDL_SwapLE16(mve->field_18);
+	mve->field_1A = SDL_SwapLE32(mve->field_1A);
+#endif
+	
     if (strncmp(mve->sig, "Interplay MVE File\x1A\x00", 20) != 0) {
         return 0;
     }
@@ -758,7 +764,10 @@ static unsigned char* _ioNextRecord()
     }
 
     _io_next_hdr = *(int*)(buf + (_io_next_hdr & 0xFFFF));
-
+#if __BIG_ENDIAN__
+	_io_next_hdr = SDL_SwapLE32(_io_next_hdr);
+#endif
+	
     return buf;
 }
 
@@ -855,6 +864,9 @@ LABEL_5:
 
     while (1) {
         v5 = *(unsigned int*)((unsigned char*)v1 + v0);
+#if __BIG_ENDIAN__
+		v5 = SDL_SwapLE32(v5);
+#endif
         v1 = (unsigned short*)((unsigned char*)v1 + v0 + 4);
         v0 = v5 & 0xFFFF;
 
@@ -866,7 +878,7 @@ LABEL_5:
             v1 = (unsigned short*)_ioNextRecord();
             goto LABEL_5;
         case 2:
-            if (!_syncInit(v1[0], v1[2])) {
+            if (!_syncInit(SDL_SwapLE16(v1[0]), SDL_SwapLE16(v1[2]))) {
                 v6 = -3;
                 break;
             }
@@ -875,14 +887,17 @@ LABEL_5:
             if ((v5 >> 24) < 1) {
                 v7 = 0;
             } else {
-                v7 = (v1[1] & 0x04) >> 2;
+                v7 = (SDL_SwapLE16(v1[1]) & 0x04) >> 2;
             }
             v8 = *(unsigned int*)((unsigned char*)v1 + 6);
+#if __BIG_ENDIAN__
+			v8 = SDL_SwapLE32(v8);	
+#endif			
             if ((v5 >> 24) == 0) {
                 v8 &= 0xFFFF;
             }
-
-            if (_MVE_sndConfigure(v1[0], v8, v1[1] & 0x01, v1[2], (v1[1] & 0x02) >> 1, v7)) {
+			
+            if (_MVE_sndConfigure(SDL_SwapLE16(v1[0]), v8, SDL_SwapLE16(v1[1]) & 0x01, SDL_SwapLE16(v1[2]), (SDL_SwapLE16(v1[1]) & 0x02) >> 1, v7)) {
                 continue;
             }
 
@@ -895,15 +910,15 @@ LABEL_5:
         case 5:
             v9 = 0;
             if ((v5 >> 24) >= 2) {
-                v9 = v1[3];
+                v9 = SDL_SwapLE16(v1[3]);
             }
 
             v10 = 1;
             if ((v5 >> 24) >= 1) {
-                v10 = v1[2];
+                v10 = SDL_SwapLE16(v1[2]);	
             }
-
-            if (!_nfConfig(v1[0], v1[1], v10, v9)) {
+			
+            if (!_nfConfig(SDL_SwapLE16(v1[0]), SDL_SwapLE16(v1[1]), v10, v9)) {
                 v6 = -5;
                 break;
             }
@@ -944,28 +959,28 @@ LABEL_5:
 
             v18 = 0;
             if ((v5 >> 24) >= 1) {
-                v18 = v1[2];
+                v18 = SDL_SwapLE16(v1[2]);
             }
 
-            v19 = v1[1];
+            v19 = SDL_SwapLE16(v1[1]);
             if (v19 == 0 || v21 || dword_6B3680) {
-                _SetPalette_1(v1[0], v19);
+                _SetPalette_1(SDL_SwapLE16(v1[0]), v19);
             } else {
-                _SetPalette_(v1[0], v19);
+                _SetPalette_(SDL_SwapLE16(v1[0]), v19);
             }
 
             if (v21) {
                 _do_nothing_(_rm_dx, _rm_dy, v21);
-            } else if (!_sync_late || v1[1]) {
+            } else if (!_sync_late || SDL_SwapLE16(v1[1])) {
                 _sfShowFrame(_rm_dx, _rm_dy, v18);
             } else {
                 _sync_FrameDropped = 1;
                 ++_rm_FrameDropCount;
             }
 
-            v20 = v1[1];
+            v20 = SDL_SwapLE16(v1[1]);
             if (v20 && !v21 && !dword_6B3680) {
-                _SetPalette_1(v1[0], v20);
+                _SetPalette_1(SDL_SwapLE16(v1[0]), v20);
             }
 
             _rm_p = (unsigned char*)v1;
@@ -975,12 +990,12 @@ LABEL_5:
         case 8:
         case 9:
             // push data to audio buffers?
-            if (v1[1] & _rm_track_bit) {
+            if (SDL_SwapLE16(v1[1]) & _rm_track_bit) {
                 v14 = (unsigned char*)v1 + 6;
                 if ((v5 >> 16) != 8) {
                     v14 = NULL;
                 }
-                _CallsSndBuff_Loc(v14, v1[2]);
+                _CallsSndBuff_Loc(v14, SDL_SwapLE16(v1[2]));
             }
             continue;
         case 10:
@@ -993,11 +1008,11 @@ LABEL_5:
             continue;
         case 11:
             // some kind of palette rotation
-            _palMakeSynthPalette(v1[0], v1[1], v1[2], v1[3], v1[4], v1[5]);
+            _palMakeSynthPalette(SDL_SwapLE16(v1[0]), SDL_SwapLE16(v1[1]), SDL_SwapLE16(v1[2]), SDL_SwapLE16(v1[3]), SDL_SwapLE16(v1[4]), SDL_SwapLE16(v1[5]));
             continue;
         case 12:
             // palette
-            _palLoadPalette((unsigned char*)v1 + 4, v1[0], v1[1]);
+            _palLoadPalette((unsigned char*)v1 + 4, SDL_SwapLE16(v1[0]), SDL_SwapLE16(v1[1]));
             continue;
         case 14:
             // save current position
@@ -1015,7 +1030,7 @@ LABEL_5:
             }
 
             // swap movie surfaces
-            if (v1[6] & 0x01) {
+            if (SDL_SwapLE16(v1[6]) & 0x01) {
                 movieSwapSurfaces();
             }
 
@@ -1078,7 +1093,7 @@ LABEL_5:
                 break;
             }
 
-            _nfPkDecomp((unsigned char*)v3, (unsigned char*)&v1[7], v1[2], v1[3], v1[4], v1[5]);
+            _nfPkDecomp((unsigned char*)v3, (unsigned char*)&v1[7], SDL_SwapLE16(v1[2]), SDL_SwapLE16(v1[3]), SDL_SwapLE16(v1[4]), SDL_SwapLE16(v1[5]));
 
             // unlock
             movieUnlockSurfaces();
@@ -1439,6 +1454,9 @@ static int _MVE_sndAdd(unsigned char* dest, unsigned char** src_ptr, int a3, int
 
     if (a5) {
         v12 = *(unsigned int*)src;
+#if __BIG_ENDIAN__
+		v12 = SDL_SwapLE32(v12);
+#endif
         src += 4;
 
         *(unsigned int*)dest = v12;
@@ -1935,6 +1953,9 @@ static void _nfPkDecomp(unsigned char* a1, unsigned char* a2, int a3, int a4, in
                             v13 = word_51F418[byte];
                         } else {
                             v13 = *(unsigned short*)a2;
+#if __BIG_ENDIAN__
+							v13 = SDL_SwapLE16(v13);
+#endif
                             a2 += 2;
                         }
 

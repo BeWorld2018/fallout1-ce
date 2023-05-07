@@ -423,7 +423,11 @@ int SaveGame(int mode)
         // Save game directory:
         strcpy(str1, getmsg(&lsgame_msgfl, &messageListItem, 107));
 
+        #ifndef __MORPHOS__
         snprintf(str2, sizeof(str2), "\"%s\\\"", "SAVEGAME");
+        #else
+        snprintf(str2, sizeof(str2), "%s\\\"", "SAVEGAME");
+        #endif
 
         // TODO: Check.
         strcpy(str2, getmsg(&lsgame_msgfl, &messageListItem, 108));
@@ -736,8 +740,13 @@ int SaveGame(int mode)
                         strcpy(str0, getmsg(&lsgame_msgfl, &lsgmesg, 106));
                         // Save game directory:
                         strcpy(str1, getmsg(&lsgame_msgfl, &lsgmesg, 107));
-
-                        snprintf(str2, sizeof(str2), "\"%s\\\"", "SAVEGAME");
+#ifdef __MORPHOS__
+                        snprintf(str2, sizeof(str2), "%s\\\"", "SAVEGAME");
+#else
+						snprintf(str2, sizeof(_str2), "\"%s\\\"", "SAVEGAME");
+#endif                        
+                        
+                        
 
                         char text[260];
                         // Doesn't exist or is corrupted.
