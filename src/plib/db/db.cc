@@ -10,7 +10,9 @@
 #else
 #include <dirent.h>
 #endif
-
+#if __BIG_ENDIAN__
+#include <SDL.h>
+#endif
 #include <fpattern.h>
 
 #include "platform_compat.h"
@@ -876,7 +878,23 @@ size_t db_fread(void* ptr, size_t size, size_t count, DB_FILE* stream)
         }
     }
 
+#if __BIG_ENDIAN__
+	if (size == 4 && count == 1) {
+        // swap endian
+        uint32_t v = *(uint32_t*)ptr;
+        v = __builtin_bswap32(v);
+        *(uint32_t*)ptr = v;
+    }
+    if (size == 2 && count == 1) {
+        // swap endian
+        uint16_t v = *(uint16_t*)ptr;
+        v = __builtin_bswap16(v);
+        *(uint16_t*)ptr = v;
+    }
+	return elements_read;
+#else
     return elements_read;
+#endif
 }
 
 // 0x4B02A0

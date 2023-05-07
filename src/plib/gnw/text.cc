@@ -8,6 +8,10 @@
 #include "plib/db/db.h"
 #include "plib/gnw/memory.h"
 
+#if __BIG_ENDIAN__
+#include <SDL.h>
+#endif
+
 namespace fallout {
 
 // The maximum number of text fonts.
@@ -168,6 +172,12 @@ static int load_font(int n)
         goto out;
     }
 
+#if __BIG_ENDIAN__
+    for (int i = 0; i < textFontDescriptor->num; i++) {
+    	textFontDescriptor->info[i].width = SDL_SwapLE32(textFontDescriptor->info[i].width);
+		textFontDescriptor->info[i].offset = SDL_SwapLE32(textFontDescriptor->info[i].offset);
+	}
+#endif
     dataSize = textFontDescriptor->height * ((textFontDescriptor->info[textFontDescriptor->num - 1].width + 7) >> 3) + textFontDescriptor->info[textFontDescriptor->num - 1].offset;
     textFontDescriptor->data = (unsigned char*)mem_malloc(dataSize);
     if (textFontDescriptor->data == NULL) {
